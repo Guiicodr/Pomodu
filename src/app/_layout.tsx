@@ -1,0 +1,70 @@
+import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Drawer } from 'expo-router/drawer';
+import { Stack, router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { SettingsProvider } from '@/context/SettingsContext';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { AppDrawerContent } from '@/components/navigation/AppDrawerContent';
+import { initDatabase } from '@/services/database';
+
+export default function RootLayout() {
+  useEffect(() => { initDatabase().catch(console.error); }, []);
+
+  return (
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <SettingsProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <MainNavigator />
+            </GestureHandlerRootView>
+          </SettingsProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </SafeAreaProvider>
+  );
+}
+
+/** Auth gate: checks session, redirects to login if no user */
+function MainNavigator() {
+  const { user, isLoading } = useAuth();
+  const { colors, isDark } = useTheme();
+
+  if (isLoading) return null;
+
+  if (!user) {
+    return (
+      <>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(auth)" />
+        </Stack>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <Drawer
+        drawerContent={(props) => <AppDrawerContent {...props} />}
+        screenOptions={{
+          headerShown: false,
+          drawerType: 'slide',
+          drawerStyle: { backgroundColor: colors.background, width: 280 },
+          drawerActiveBackgroundColor: colors.accentSoft,
+          drawerActiveTintColor: colors.accent,
+          drawerInactiveTintColor: colors.textMuted,
+        }}
+      >
+        <Drawer.Screen name="index" />
+        <Drawer.Screen name="tasks" />
+        <Drawer.Screen name="insights" />
+        <Drawer.Screen name="settings" />
+      </Drawer>
+    </>
+  );
+}
