@@ -23,6 +23,17 @@ export function getWeekdayName(timestamp: number): string {
   return days[new Date(timestamp).getDay()];
 }
 
+export function getTaskCategoryLabel(category: string): string {
+  const labels: Record<string, string> = {
+    Dev: 'Desenvolvimento',
+    Writing: 'Escrita',
+    Personal: 'Pessoal',
+    Study: 'Estudos',
+    Other: 'Outro',
+  };
+  return labels[category] ?? category;
+}
+
 /**
  * Gera um ID simples baseado em timestamp + math.random
  */

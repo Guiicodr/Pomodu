@@ -4,7 +4,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { PomodoroPhase } from '@/hooks/usePomodoroTimer';
 
 interface Props { phase: PomodoroPhase; }
-const labelMap: Record<PomodoroPhase, string> = { idle: 'READY', focusing: 'FOCUS SESSION', short_break: 'BREAK', long_break: 'LONG BREAK' };
+const labelMap: Record<PomodoroPhase, string> = { idle: 'PRONTO PARA COMEÇAR', focusing: 'SESSÃO DE FOCO', short_break: 'PAUSA CURTA', long_break: 'PAUSA LONGA' };
 
 export function SessionBadge({ phase }: Props) {
   const { colors } = useTheme();
@@ -17,7 +17,7 @@ export function SessionBadge({ phase }: Props) {
 }
 
 const styles = StyleSheet.create({
-  badge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 6, borderRadius: 999 },
+  badge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', gap: 7, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999 },
   dot: { width: 6, height: 6, borderRadius: 3 },
-  label: { fontSize: 12, fontWeight: '700', letterSpacing: 1.5 },
+  label: { fontSize: 10, fontWeight: '700', letterSpacing: 1.1 },
 });

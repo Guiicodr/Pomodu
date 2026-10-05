@@ -24,6 +24,7 @@ interface ButtonProps {
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
+  accessibilityLabel?: string;
 }
 
 export function Button({
@@ -35,8 +36,9 @@ export function Button({
   disabled = false,
   loading = false,
   style,
+  accessibilityLabel,
 }: ButtonProps) {
-  const { colors } = useTheme();
+  const { colors, fontBody } = useTheme();
 
   const bgMap: Record<string, string> = {
     primary: colors.accent,
@@ -73,6 +75,8 @@ export function Button({
       onPress={onPress}
       disabled={disabled || loading}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? title}
     >
       {loading ? (
         <ActivityIndicator color={textColorMap[variant]} size="small" />
@@ -83,7 +87,7 @@ export function Button({
             <Text
               style={[
                 styles.text,
-                { color: textColorMap[variant], fontSize: fontSizeMap[size] },
+                { color: textColorMap[variant], fontSize: fontSizeMap[size], fontFamily: fontBody },
               ]}
             >
               {title}

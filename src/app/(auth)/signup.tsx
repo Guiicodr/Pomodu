@@ -9,12 +9,13 @@ import{useTheme}from'@/context/ThemeContext';import{useAuth,validatePassword,get
 import{PomoduBrandLockup}from'@/components/brand/PomoduBrandLockup';
 
 export default function SignupScreen(){
-  const insets=useSafeAreaInsets();const{colors,isDark}=useTheme();
+  const insets=useSafeAreaInsets();const{colors,isDark,fontBody}=useTheme();
   const{signup,isLoading}=useAuth();
   const[displayName,setDisplayName]=useState('');const[email,setEmail]=useState('');const[password,setPassword]=useState('');
   const[showPassword,setShowPassword]=useState(false);const[error,setError]=useState('');
 
   const strength=getPwdStrength(password);
+  const strengthColor=strength.score<=2?(isDark?'#FF776A':'#B9382C'):strength.score<=4?(isDark?'#E8AE50':'#94600A'):colors.accent;
   const passErr=password?validatePassword(password):null;
 
   const handleSignup=async()=>{
@@ -29,30 +30,30 @@ export default function SignupScreen(){
   return(
     <KeyboardAvoidingView style={[styles.container,{backgroundColor:colors.background}]} behavior={Platform.OS==='ios'?'padding':'height'}>
       <StatusBar barStyle={isDark?'light-content':'dark-content'}/>
-      <ScrollView contentContainerStyle={[styles.scroll,{paddingTop:insets.top+60,paddingBottom:insets.bottom+40}]} keyboardShouldPersistTaps="handled">
-        <View style={styles.brandSection}><PomoduBrandLockup size={32} textSize={22}/><Text style={[styles.title,{color:colors.text}]}>Criar Conta</Text><Text style={[styles.slogan,{color:colors.textMuted}]}>Comece sua jornada de foco</Text></View>
+      <ScrollView contentContainerStyle={[styles.scroll,{paddingTop:insets.top+32,paddingBottom:insets.bottom+32}]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <View style={styles.brandSection}><PomoduBrandLockup size={32} textSize={22}/><Text style={[styles.eyebrow,{color:colors.accent}]}>UM PASSO DE CADA VEZ</Text><Text style={[styles.title,{color:colors.text,fontFamily:'Sora_600SemiBold'}]}>Seu foco começa aqui.</Text><Text style={[styles.slogan,{color:colors.textMuted}]}>Crie sua conta e faça espaço para o que importa.</Text></View>
         <View style={styles.form}>
-          <TextInput style={[styles.input,{backgroundColor:colors.surface,color:colors.text,borderColor:colors.border}]} placeholder="Nome completo" placeholderTextColor={colors.textMuted} value={displayName} onChangeText={setDisplayName} autoCapitalize="words"/>
-          <TextInput style={[styles.input,{backgroundColor:colors.surface,color:colors.text,borderColor:colors.border}]} placeholder="Email" placeholderTextColor={colors.textMuted} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address"/>
+          <TextInput style={[styles.input,{backgroundColor:colors.surfaceAlt,color:colors.text,borderColor:colors.border}]} placeholder="Nome completo" placeholderTextColor={colors.textMuted} value={displayName} onChangeText={setDisplayName} autoCapitalize="words" autoComplete="name" accessibilityLabel="Nome completo"/>
+          <TextInput style={[styles.input,{backgroundColor:colors.surfaceAlt,color:colors.text,borderColor:colors.border}]} placeholder="E-mail" placeholderTextColor={colors.textMuted} value={email} onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" autoComplete="email" accessibilityLabel="E-mail"/>
           <View style={styles.passwordRow}>
-            <TextInput style={[styles.input,styles.passwordInput,{backgroundColor:colors.surface,color:colors.text,borderColor:colors.border}]} placeholder="Senha (min. 8 caracteres)" placeholderTextColor={colors.textMuted} value={password} onChangeText={setPassword} secureTextEntry={!showPassword}/>
-            <TouchableOpacity style={styles.eyeBtn} onPress={()=>setShowPassword(!showPassword)}>{showPassword?<EyeOff size={20} color={colors.textMuted}/>:<Eye size={20} color={colors.textMuted}/>}</TouchableOpacity>
+            <TextInput style={[styles.input,styles.passwordInput,{backgroundColor:colors.surfaceAlt,color:colors.text,borderColor:colors.border}]} placeholder="Senha (mínimo 8 caracteres)" placeholderTextColor={colors.textMuted} value={password} onChangeText={setPassword} secureTextEntry={!showPassword} autoComplete="new-password" accessibilityLabel="Senha"/>
+            <TouchableOpacity style={styles.eyeBtn} onPress={()=>setShowPassword(!showPassword)} accessibilityRole="button" accessibilityLabel={showPassword?'Ocultar senha':'Mostrar senha'}>{showPassword?<EyeOff size={20} color={colors.textMuted}/>:<Eye size={20} color={colors.textMuted}/>}</TouchableOpacity>
           </View>
           {/* Password strength meter */}
           {password.length>0&&(
             <View style={styles.strengthRow}>
               <View style={[styles.strengthBar,{backgroundColor:colors.track}]}>
-                <View style={[styles.strengthFill,{backgroundColor:strength.color,width:`${(strength.score/6)*100}%`}]}/>
+                <View style={[styles.strengthFill,{backgroundColor:strengthColor,width:`${(strength.score/6)*100}%`}]}/>
               </View>
-              <Text style={[styles.strengthLabel,{color:strength.color}]}>{strength.label}</Text>
+              <Text style={[styles.strengthLabel,{color:strengthColor}]}>{strength.label}</Text>
             </View>
           )}
-          {password.length>0&&passErr&&<Text style={[styles.rulesText,{color:colors.textMuted}]}>{passErr}</Text>}
-          {error?<Text style={[styles.errorText,{color:'#EF4444'}]}>{error}</Text>:null}
+          {password.length>0&&passErr&&<Text style={[styles.rulesText,{color:colors.textMuted}]} accessibilityRole="alert">{passErr}</Text>}
+          {error?<Text style={[styles.errorText,{color:isDark?'#FCA5A5':'#B91C1C',backgroundColor:isDark?'rgba(239,68,68,0.12)':'#FEF2F2'}]} accessibilityRole="alert">{error}</Text>:null}
           <TouchableOpacity onPress={handleSignup} activeOpacity={0.8} disabled={isLoading}>
-            <LinearGradient colors={colors.gradientPrimary} style={styles.ctaBtn}>
-              {isLoading?<ActivityIndicator color="#fff"/>:<UserPlus size={20} color="#fff"/>}
-              <Text style={styles.ctaText}>Criar Conta</Text>
+            <LinearGradient colors={colors.gradientPrimary} style={[styles.ctaBtn,isLoading&&{opacity:0.7}]}>
+              {isLoading?<ActivityIndicator color={colors.onAccent}/>:<UserPlus size={20} color={colors.onAccent}/>}
+              <Text style={[styles.ctaText,{color:colors.onAccent,fontFamily:fontBody}]}>Criar conta</Text>
             </LinearGradient>
           </TouchableOpacity>
           <View style={styles.footer}>
@@ -67,9 +68,10 @@ export default function SignupScreen(){
 
 const styles=StyleSheet.create({
   container:{flex:1},scroll:{flexGrow:1,paddingHorizontal:24},
-  brandSection:{alignItems:'center',gap:8,marginBottom:40},
-  title:{fontSize:28,fontWeight:'800',letterSpacing:-0.5},slogan:{fontSize:14,fontWeight:'500',letterSpacing:0.3},
-  form:{gap:14},input:{paddingHorizontal:16,paddingVertical:16,borderRadius:14,borderWidth:1,fontSize:16},
+  brandSection:{alignItems:'flex-start',gap:9,marginBottom:30,marginTop:14},
+  eyebrow:{fontSize:10,fontWeight:'700',letterSpacing:1.5,marginTop:22},
+  title:{fontSize:29,lineHeight:36,fontWeight:'700',letterSpacing:-0.8},slogan:{fontSize:14,lineHeight:21,letterSpacing:0.1},
+  form:{gap:14},input:{paddingHorizontal:16,paddingVertical:15,borderRadius:14,borderWidth:1,fontSize:15},
   passwordRow:{position:'relative'},passwordInput:{paddingRight:48},
   eyeBtn:{position:'absolute',right:14,top:14,padding:4},
   strengthRow:{flexDirection:'row',alignItems:'center',gap:8},
@@ -78,8 +80,8 @@ const styles=StyleSheet.create({
   strengthLabel:{fontSize:12,fontWeight:'700',minWidth:40},
   rulesText:{fontSize:12,marginTop:-8},
   errorText:{fontSize:13,textAlign:'center'},
-  ctaBtn:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,paddingVertical:16,borderRadius:14},
-  ctaText:{color:'#fff',fontSize:17,fontWeight:'700'},
+  ctaBtn:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,paddingVertical:16,borderRadius:14,minHeight:54},
+  ctaText:{color:'#fff',fontSize:15,fontWeight:'700'},
   footer:{flexDirection:'row',justifyContent:'center',marginTop:8},
   footerText:{fontSize:14},footerLink:{fontSize:14,fontWeight:'700'},
 });

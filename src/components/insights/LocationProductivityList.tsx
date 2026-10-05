@@ -27,7 +27,7 @@ export function LocationProductivityList({
 
   return (
     <Card padded style={styles.card}>
-      <Text style={[styles.title, { color: colors.text }]}>Produtividade por Local</Text>
+      <Text style={[styles.title, { color: colors.text, fontFamily: 'Sora_600SemiBold' }]}>Produtividade por local</Text>
 
       {data.length === 0 ? (
         <Text style={[styles.empty, { color: colors.textMuted }]}>
@@ -37,7 +37,7 @@ export function LocationProductivityList({
         data.map((item, index) => (
           <View key={item.locationId} style={[styles.row, { borderBottomColor: colors.border }]}>
             <View style={[styles.rankBadge, { backgroundColor: colors.accent }]}>
-              <Text style={styles.rankText}>{index + 1}</Text>
+              <Text style={[styles.rankText,{color:colors.onAccent}]}>{index + 1}</Text>
             </View>
             <MapPin size={16} color={colors.accent} />
             <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
   title: { fontSize: FONT_SIZES.subtitle, fontWeight: '600', marginBottom: SPACING.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, paddingVertical: SPACING.sm, borderBottomWidth: 1 },
   rankBadge: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  rankText: { fontSize: FONT_SIZES.caption, fontWeight: '700', color: '#FFFFFF' },
+  rankText: { fontSize: FONT_SIZES.caption, fontWeight: '700' },
   name: { flex: 1, fontSize: FONT_SIZES.body, fontWeight: '500' },
   time: { fontSize: FONT_SIZES.caption, fontVariant: ['tabular-nums'] },
   empty: { fontSize: FONT_SIZES.body, textAlign: 'center', paddingVertical: SPACING.xl },

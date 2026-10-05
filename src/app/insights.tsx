@@ -1,18 +1,26 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, StatusBar } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, StatusBar, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Clock, Flame, Smartphone, Target } from 'lucide-react-native';
+import { Clock3, Flame, Smartphone, Target } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
-import { SPACING, FONT_SIZES } from '@/constants/theme';
+import { SPACING } from '@/constants/theme';
 import { ScreenHeader } from '@/components/navigation/ScreenHeader';
 import { Card } from '@/components/ui/Card';
 import { StatCard } from '@/components/insights/StatCard';
 import { LocationRow } from '@/components/insights/LocationRow';
 import { WeeklyBarChart } from '@/components/insights/WeeklyBarChart';
 import { formatDuration } from '@/utils/format';
-import { getTotalFocusedMs, getFocusedMsByWeekday, getFocusedMsByLocation } from '@/services/sessionService';
+import {
+  calculateStreak,
+  getFocusedMsByLocation,
+  getFocusedMsByWeekday,
+  getTodaySessionCount,
+  getTotalFocusedMs,
+} from '@/services/sessionService';
 import { useLocations } from '@/hooks/useLocations';
 import { useTasks } from '@/hooks/useTasks';
+
+type LocationMetric = { locationId: string; name: string; totalMs: number; sessions: number };
 
 export default function InsightsScreen() {
   const insets = useSafeAreaInsets();
@@ -21,57 +29,107 @@ export default function InsightsScreen() {
   const { tasks } = useTasks();
   const [totalMs, setTotalMs] = useState(0);
   const [weekdayData, setWeekdayData] = useState<number[]>(new Array(7).fill(0));
-  const [locationData, setLocationData] = useState<{ locationId: string; name: string; totalMs: number }[]>([]);
+  const [locationData, setLocationData] = useState<LocationMetric[]>([]);
+  const [streak, setStreak] = useState(0);
+  const [todaySessions, setTodaySessions] = useState(0);
+  const [loadError, setLoadError] = useState('');
 
   const loadMetrics = useCallback(async () => {
-    try { const [total, weekdays, locs] = await Promise.all([getTotalFocusedMs(), getFocusedMsByWeekday(), getFocusedMsByLocation()]); setTotalMs(total); setWeekdayData(weekdays); setLocationData(locs); } catch {}
+    setLoadError('');
+    try {
+      const [total, weekdays, locs, currentStreak, todayCount] = await Promise.all([
+        getTotalFocusedMs(),
+        getFocusedMsByWeekday(),
+        getFocusedMsByLocation(),
+        calculateStreak(),
+        getTodaySessionCount(),
+      ]);
+      setTotalMs(total);
+      setWeekdayData(weekdays);
+      setLocationData(locs);
+      setStreak(currentStreak);
+      setTodaySessions(todayCount);
+    } catch (error) {
+      console.error('[InsightsScreen] load metrics', error);
+      setLoadError('Não foi possível carregar suas métricas. Tente novamente mais tarde.');
+    }
   }, []);
 
   useEffect(() => { loadMetrics(); }, [loadMetrics]);
 
-  const doneTasks = tasks.filter(t => t.status === 'done').length;
-  const weekNum = Math.ceil((new Date().getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 86400000 / 7);
+  const doneTasks = tasks.filter((task) => task.status === 'done').length;
+  const pendingTasks = tasks.length - doneTasks;
+  const fallbackLocations = locationData.length === 0
+    ? locations.map((location) => ({
+        locationId: location.id,
+        name: location.name,
+        totalMs: location.totalFocusedMs,
+        sessions: location.totalSessions,
+        icon: location.icon,
+      }))
+    : [];
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 24) }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      <ScreenHeader title="Metricas" />
-      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + SPACING.xxl }} showsVerticalScrollIndicator={false}>
-        <View style={styles.subheader}>
-          <Text style={[styles.weekLabel, { color: colors.textMuted }]}>Semana {weekNum}</Text>
-          <Text style={[styles.totalFocused, { color: colors.accent }]}>{formatDuration(totalMs)} focado</Text>
+      <ScreenHeader title="Seu progresso" />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.intro}>
+          <Text style={[styles.eyebrow, { color: colors.accent }]}>VISÃO GERAL</Text>
+          <Text style={[styles.heading, { color: colors.text, fontFamily: 'Sora_600SemiBold' }]}>Cada sessão conta.</Text>
+          <Text style={[styles.subheading, { color: colors.textMuted }]}>Veja como seu foco ganha ritmo com o tempo.</Text>
+        </View>
+
+        <Card padded style={styles.heroCard}>
+          <Text style={[styles.heroLabel, { color: colors.textMuted }]}>TEMPO TOTAL DE FOCO</Text>
+          <Text style={[styles.heroValue, { color: colors.text, fontFamily: 'Sora_600SemiBold' }]}>{formatDuration(totalMs)}</Text>
+          <View style={[styles.heroFooter, { borderTopColor: colors.border }]}>
+            <View style={[styles.heroIcon, { backgroundColor: colors.accentSoft }]}><Clock3 size={16} color={colors.accent} /></View>
+            <Text style={[styles.heroCaption, { color: colors.textMuted }]}>Acumulado em sessões concluídas</Text>
+          </View>
+        </Card>
+
+        <View style={styles.statsGrid}>
+          <StatCard icon={<Flame size={17} color={colors.accent} />} value={`${streak}`} label={streak === 1 ? 'dia de sequência' : 'dias de sequência'} />
+          <StatCard icon={<Smartphone size={17} color={colors.accent} />} value={`${todaySessions}`} label={todaySessions === 1 ? 'sessão hoje' : 'sessões hoje'} />
         </View>
         <View style={styles.statsGrid}>
-          <StatCard icon={<Clock size={18} color={colors.accent} />} value={formatDuration(totalMs)} label="Foco total" />
-          <StatCard icon={<Flame size={18} color={colors.accent} />} value="12 days" label="Sequencia" trend="+3 vs. semana" />
+          <StatCard icon={<Target size={17} color={colors.accent} />} value={`${doneTasks}/${tasks.length}`} label="tarefas concluídas" />
+          <StatCard icon={<Target size={17} color={colors.accent} />} value={`${pendingTasks}`} label={pendingTasks === 1 ? 'tarefa em aberto' : 'tarefas em aberto'} />
         </View>
-        <View style={styles.statsGrid}>
-          <StatCard icon={<Smartphone size={18} color={colors.accent} />} value="8/12" label="Sessoes concluidas" />
-          <StatCard icon={<Target size={18} color={colors.accent} />} value={`${doneTasks}/${tasks.length}`} label="Tarefas" />
-        </View>
-        <Card padded style={styles.sectionCard}><WeeklyBarChart dataByWeekday={weekdayData} /></Card>
+
+        {loadError ? (
+          <View style={[styles.error, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={{ color: isDark ? '#FF9C91' : '#B9382C' }} accessibilityRole="alert">{loadError}</Text>
+            <TouchableOpacity onPress={loadMetrics} accessibilityRole="button">
+              <Text style={{ color: colors.accent, fontWeight: '700' }}>Tentar novamente</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        <WeeklyBarChart dataByWeekday={weekdayData} />
+
         <Card padded style={styles.sectionCard}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Locais de foco</Text>
-          {locationData.length === 0 ? (
-            <Text style={[styles.empty, { color: colors.textMuted }]}>Complete ciclos com GPS ativo</Text>
-          ) : locationData.map((loc, i) => (
-            <LocationRow key={loc.locationId} name={loc.name} icon="home" sessions={0} focusedMs={loc.totalMs} rank={i + 1} />
-          ))}
-          {locations.length > 0 && locationData.length === 0 && locations.map((loc, i) => (
-            <LocationRow key={loc.id} name={loc.name} icon={loc.icon} sessions={loc.totalSessions} focusedMs={loc.totalFocusedMs} rank={i + 1} />
+          <Text style={[styles.sectionTitle, { color: colors.text, fontFamily: 'Sora_600SemiBold' }]}>Lugares onde você foca</Text>
+          {locationData.length === 0 && fallbackLocations.length === 0 ? (
+            <Text style={[styles.empty, { color: colors.textMuted }]}>Suas sessões em diferentes locais aparecerão aqui.</Text>
+          ) : locationData.length > 0 ? (
+            locationData.map((location, index) => (
+              <LocationRow key={location.locationId} name={location.name ?? 'Local sem nome'} icon="other" sessions={location.sessions} focusedMs={location.totalMs} rank={index + 1} />
+            ))
+          ) : fallbackLocations.map((location, index) => (
+            <LocationRow key={location.locationId} name={location.name} icon={location.icon} sessions={location.sessions} focusedMs={location.totalMs} rank={index + 1} />
           ))}
         </Card>
-        {locationData.length >= 2 && (
+
+        {locationData.length >= 2 && locationData[1].totalMs > 0 ? (
           <Card padded style={styles.sectionCard}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Comparativo de Produtividade</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text, fontFamily: 'Sora_600SemiBold' }]}>Seu lugar de maior foco</Text>
             <Text style={[styles.comparisonText, { color: colors.textMuted }]}>
-              Sua produtividade na {locationData[0].name} e {Math.round((locationData[0].totalMs / locationData[1].totalMs - 1) * 100)}% maior que em {locationData[1].name}.
+              Você acumulou mais tempo de foco em {locationData[0].name} do que em {locationData[1].name}.
             </Text>
           </Card>
-        )}
-        {!locations.length && (
-          <Card padded><Text style={[styles.empty, { color: colors.textMuted }]}>Permita acesso a localizacao.</Text></Card>
-        )}
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -79,12 +137,21 @@ export default function InsightsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: SPACING.lg },
-  subheader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: SPACING.sm },
-  weekLabel: { fontSize: FONT_SIZES.caption, fontWeight: '600' },
-  totalFocused: { fontSize: FONT_SIZES.caption, fontWeight: '700' },
+  scrollContent:{paddingBottom:SPACING.xxl},
+  intro:{paddingTop:14,paddingBottom:18},
+  eyebrow:{fontSize:10,fontWeight:'700',letterSpacing:1.6,marginBottom:8},
+  heading:{fontSize:24,fontWeight:'700',letterSpacing:-0.7},
+  subheading:{fontSize:13,lineHeight:19,marginTop:6},
+  heroCard:{marginBottom:12,padding:20},
+  heroLabel:{fontSize:10,fontWeight:'700',letterSpacing:1.2},
+  heroValue:{fontSize:36,fontWeight:'700',letterSpacing:-1,marginTop:7},
+  heroFooter:{flexDirection:'row',alignItems:'center',gap:9,borderTopWidth:1,marginTop:16,paddingTop:14},
+  heroIcon:{width:30,height:30,borderRadius:11,alignItems:'center',justifyContent:'center'},
+  heroCaption:{fontSize:12},
   statsGrid: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.sm },
-  sectionCard: { marginBottom: SPACING.md },
-  sectionTitle: { fontSize: FONT_SIZES.subtitle, fontWeight: '700', marginBottom: SPACING.sm },
-  comparisonText: { fontSize: FONT_SIZES.body, paddingVertical: SPACING.sm },
-  empty: { fontSize: FONT_SIZES.body, textAlign: 'center', paddingVertical: SPACING.xl },
+  sectionCard: { marginBottom: SPACING.md,padding:18 },
+  sectionTitle: { fontSize: 15, fontWeight: '600', marginBottom: SPACING.sm },
+  comparisonText: { fontSize: 13, lineHeight:20,paddingVertical: SPACING.sm },
+  empty: { fontSize: 13, lineHeight:19,textAlign: 'center', paddingVertical: SPACING.lg },
+  error:{gap:10,padding:13,borderRadius:14,marginBottom:SPACING.md,borderWidth:1},
 });

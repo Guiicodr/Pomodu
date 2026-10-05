@@ -34,13 +34,12 @@ export function TaskPickerModal({ visible, tasks, onSelect, onClose }: TaskPicke
             { backgroundColor: colors.surface, borderColor: colors.border },
           ]}
         >
-          <Text style={[styles.heading, { color: colors.text }]}>
-            Vincular Tarefa
-          </Text>
+          <Text style={[styles.heading, { color: colors.text, fontFamily: 'Sora_600SemiBold' }]}>Sua próxima tarefa</Text>
+          <Text style={[styles.subtitle,{color:colors.textMuted}]}>Escolha em que você quer focar nesta sessão.</Text>
 
           {tasks.length === 0 ? (
             <Text style={[styles.empty, { color: colors.textMuted }]}>
-              Nenhuma tarefa criada ainda
+              Você ainda não tem tarefas abertas. Crie uma na tela de Tarefas.
             </Text>
           ) : (
             <FlatList
@@ -51,6 +50,7 @@ export function TaskPickerModal({ visible, tasks, onSelect, onClose }: TaskPicke
                   style={[styles.item, { borderBottomColor: colors.border }]}
                   onPress={() => onSelect(item)}
                   activeOpacity={0.6}
+                  accessibilityRole="button"
                 >
                   <Text style={[styles.itemTitle, { color: colors.text }]} numberOfLines={1}>
                     {item.title}
@@ -64,8 +64,8 @@ export function TaskPickerModal({ visible, tasks, onSelect, onClose }: TaskPicke
             />
           )}
 
-          <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-            <Text style={[styles.closeText, { color: colors.accent }]}>Fechar</Text>
+          <TouchableOpacity style={[styles.closeBtn,{backgroundColor:colors.surfaceAlt}]} onPress={onClose} accessibilityRole="button">
+            <Text style={[styles.closeText, { color: colors.text }]}>Voltar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -76,8 +76,8 @@ export function TaskPickerModal({ visible, tasks, onSelect, onClose }: TaskPicke
 function statusLabel(s: Task['status']): string {
   const map: Record<string, string> = {
     todo: 'A fazer',
-    in_progress: 'Fazendo',
-    done: 'Concluido',
+    in_progress: 'Em andamento',
+    done: 'Concluída',
   };
   return map[s] ?? s;
 }
@@ -95,17 +95,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   heading: {
-    fontSize: FONT_SIZES.title,
+    fontSize: 20,
     fontWeight: '700',
-    marginBottom: SPACING.md,
+    marginBottom: 5,
   },
+  subtitle:{fontSize:13,lineHeight:19,marginBottom:SPACING.md},
   list: {
     maxHeight: 300,
   },
   item: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: SPACING.sm + 2,
+    paddingVertical: 14,
     borderBottomWidth: 1,
   },
   itemTitle: {
@@ -124,7 +125,8 @@ const styles = StyleSheet.create({
   closeBtn: {
     marginTop: SPACING.md,
     alignItems: 'center',
-    paddingVertical: SPACING.sm,
+    paddingVertical: 12,
+    borderRadius:12,
   },
   closeText: {
     fontSize: FONT_SIZES.body,

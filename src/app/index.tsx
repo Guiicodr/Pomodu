@@ -14,15 +14,17 @@ import{ScreenHeader}from'@/components/navigation/ScreenHeader';import{SessionBad
 import{CircularTimer}from'@/components/focus/CircularTimer';import{CurrentTaskCard}from'@/components/focus/CurrentTaskCard';
 import{FooterStatus}from'@/components/focus/FooterStatus';import{TaskPickerModal}from'@/components/focus/TaskPickerModal';
 import{Button}from'@/components/ui/Button';import{Task}from'@/types';
-import{createSession}from'@/services/sessionService';import{addFocusedTime}from'@/services/taskService';
+import{calculateStreak,createSession}from'@/services/sessionService';import{addFocusedTime}from'@/services/taskService';
 
 export default function FocusScreen(){
   const insets=useSafeAreaInsets();const{colors,isDark}=useTheme();
-  const{settings,updateSettings}=useSettings();
+  const{settings}=useSettings();
   const timer=usePomodoroTimer({requireFlipToRun:true,focusMinutes:settings.focusMinutes,shortBreakMinutes:settings.shortBreakMinutes,longBreakMinutes:settings.longBreakMinutes,cyclesBeforeLongBreak:settings.cyclesBeforeLongBreak});
   const{isFaceDown}=useFlipDetector({onLift:()=>{if(timer.isRunning)Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);},onFaceDown:()=>{Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).then(()=>Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy));}});
   const{tasks,refresh}=useTasks();const{locations,resolveLocation}=useLocations();
-  const[showTaskPicker,setShowTaskPicker]=useState(false);const[linkedTask,setLinkedTask]=useState<Task|null>(null);
+  const[showTaskPicker,setShowTaskPicker]=useState(false);const[linkedTask,setLinkedTask]=useState<Task|null>(null);const[streak,setStreak]=useState(0);
+
+  useEffect(()=>{calculateStreak().then(setStreak).catch(error=>console.error('[FocusScreen] calculate streak',error));},[]);
 
   useEffect(()=>{timer.setFlipState(isFaceDown);},[isFaceDown]);
   useEffect(()=>{if(isFaceDown&&timer.phase==='idle')timer.start();},[isFaceDown,timer.phase]);
@@ -35,19 +37,18 @@ export default function FocusScreen(){
 
   useEffect(()=>{if(timer.phase!=='focusing'&&timer.remainingMs===0)handleSessionComplete(timer.totalMs);},[timer.phase,timer.remainingMs]);
 
-  const locationName=locations.length>0?locations[0].name:'Nao definido';
+  const locationName=locations.length>0?locations[0].name:'Local não definido';
   const doneToday=tasks.filter(t=>t.status==='done').length;const totalToday=tasks.length;
   const pomoProgress=totalToday>0?doneToday/totalToday:0;
-  const handlePreset=(m:number)=>updateSettings({focusMinutes:m});
-  const isLight=!colors.text.startsWith('#F');const bg=isLight?'rgba(0,0,0,0.04)':'rgba(255,255,255,0.05)';
+  const bg=isDark?'rgba(255,255,255,0.06)':'rgba(23,35,26,0.05)';
 
   return(
     <View style={[styles.container,{backgroundColor:colors.background,paddingTop:insets.top,paddingBottom:Math.max(insets.bottom,24)}]}>
       <StatusBar barStyle={isDark?'light-content':'dark-content'}/>
       <ScreenHeader title="Pomodu">
         <View style={{flexDirection:'row',gap:8,alignItems:'center'}}>
-          <View style={[styles.liveBadge,{backgroundColor:colors.accentSoft}]}><Flame size={11} color={colors.accent}/><Text style={[styles.liveText,{color:colors.accent}]}>128</Text></View>
-          <Button title="" variant="ghost" size="sm" onPress={()=>setShowTaskPicker(true)} icon={<Target size={16} color={colors.textMuted}/>}/>
+          <View style={[styles.liveBadge,{backgroundColor:colors.accentSoft}]}><Flame size={12} color={colors.accent}/><Text style={[styles.liveText,{color:colors.accent}]}>{streak} {streak===1?'dia':'dias'}</Text></View>
+          <Button title="" variant="ghost" size="sm" onPress={()=>setShowTaskPicker(true)} icon={<Target size={17} color={colors.textMuted}/>} accessibilityLabel="Vincular tarefa"/>
         </View>
       </ScreenHeader>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom:SPACING.xl}}>
@@ -64,14 +65,14 @@ export default function FocusScreen(){
         </View>
         <View style={[styles.dailyWidget,{backgroundColor:colors.surface,borderColor:colors.border}]}>
           <View style={styles.dailyHeader}><Target size={14} color={colors.accent}/>
-            <Text style={[styles.dailyLabel,{color:colors.text}]}>Meta de hoje</Text>
-            <Text style={[styles.dailyCount,{color:colors.textMuted}]}>{doneToday}/{totalToday} pomodoros</Text>
+            <Text style={[styles.dailyLabel,{color:colors.text}]}>Progresso das tarefas</Text>
+            <Text style={[styles.dailyCount,{color:colors.textMuted}]}>{doneToday} de {totalToday} tarefas</Text>
           </View>
           <View style={[styles.dailyBar,{backgroundColor:colors.track}]}>
             <LinearGradient colors={colors.gradientPrimary} style={[styles.dailyBarFill,{width:`${Math.min(pomoProgress*100,100)}%`}]}/>
           </View>
         </View>
-        <CurrentTaskCard title={linkedTask?.title??'No task linked'} category="Design" session={timer.cycle+1} totalSessions={4}/>
+        <CurrentTaskCard title={linkedTask?.title??'Escolha uma tarefa para acompanhar seu foco'} category={linkedTask?.category} session={timer.cycle+1} totalSessions={linkedTask?settings.cyclesBeforeLongBreak:0}/>
         <FooterStatus isFaceDown={isFaceDown} locationName={locationName}/>
       </ScrollView>
       <TaskPickerModal visible={showTaskPicker} tasks={tasks.filter(t=>t.status!=='done')}

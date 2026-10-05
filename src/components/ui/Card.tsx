@@ -32,7 +32,7 @@ export function Card({ children, style, padded = true }: CardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: RADIUS.md,
+    borderRadius: RADIUS.lg,
     borderWidth: 1,
   },
   padded: {

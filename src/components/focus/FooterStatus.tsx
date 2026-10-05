@@ -8,7 +8,7 @@ interface Props { isFaceDown: boolean; locationName?: string | null; }
 export function FooterStatus({ isFaceDown, locationName }: Props) {
   const { colors } = useTheme();
   const flipColor = isFaceDown ? colors.accent : colors.textMuted;
-  const flipLabel = isFaceDown ? 'Face-down engaged' : 'Flip to lock in';
+  const flipLabel = isFaceDown ? 'Foco ativo' : 'Vire o celular para focar';
   return (
     <View style={styles.container}>
       <View style={styles.item}>
@@ -26,7 +26,7 @@ export function FooterStatus({ isFaceDown, locationName }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row', justifyContent: 'center', gap: 24, paddingVertical: 16 },
+  container: { flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: 18, paddingVertical: 14 },
   item: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   label: { fontSize: 12, fontWeight: '500' },
 });

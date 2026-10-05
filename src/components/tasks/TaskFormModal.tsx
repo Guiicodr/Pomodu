@@ -19,7 +19,14 @@ import { Task } from '@/types';
 import { SPACING, FONT_SIZES, RADIUS } from '@/constants/theme';
 import { Button } from '@/components/ui/Button';
 
-const CATEGORIES = ['Design', 'Dev', 'Writing', 'Personal', 'Study', 'Other'];
+const CATEGORIES = [
+  { value: 'Design', label: 'Design' },
+  { value: 'Dev', label: 'Desenvolvimento' },
+  { value: 'Writing', label: 'Escrita' },
+  { value: 'Personal', label: 'Pessoal' },
+  { value: 'Study', label: 'Estudos' },
+  { value: 'Other', label: 'Outro' },
+];
 
 interface TaskFormModalProps {
   visible: boolean;
@@ -67,9 +74,10 @@ export function TaskFormModal({
           contentContainerStyle={[styles.modal, { backgroundColor: colors.surface, borderColor: colors.border }]}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={[styles.heading, { color: colors.text }]}>
+          <Text style={[styles.heading, { color: colors.text, fontFamily: 'Sora_600SemiBold' }]}>
             {editingTask ? 'Editar Tarefa' : 'Nova Tarefa'}
           </Text>
+          <Text style={[styles.description,{color:colors.textMuted}]}>Defina o próximo passo do seu foco.</Text>
 
           <TextInput
             style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
@@ -78,6 +86,7 @@ export function TaskFormModal({
             value={title}
             onChangeText={setTitle}
             autoFocus
+            accessibilityLabel="Título da tarefa"
           />
           <TextInput
             style={[styles.input, styles.textArea, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
@@ -87,33 +96,36 @@ export function TaskFormModal({
             onChangeText={setDescription}
             multiline
             numberOfLines={3}
+            accessibilityLabel="Descrição da tarefa, opcional"
           />
 
           {/* Categoria chips */}
-          <Text style={[styles.categoryLabel, { color: colors.textMuted }]}>Categoria</Text>
+          <Text style={[styles.categoryLabel, { color: colors.text }]}>Escolha uma categoria</Text>
           <View style={styles.chipsRow}>
             {CATEGORIES.map((cat) => (
               <TouchableOpacity
-                key={cat}
+                key={cat.value}
                 style={[
                   styles.chip,
                   {
-                    backgroundColor: category === cat ? colors.accentSoft : colors.tagBg,
-                    borderColor: category === cat ? colors.accent : 'transparent',
+                    backgroundColor: category === cat.value ? colors.accentSoft : colors.tagBg,
+                    borderColor: category === cat.value ? colors.accent : 'transparent',
                   },
                 ]}
-                onPress={() => setCategory(category === cat ? '' : cat)}
+                onPress={() => setCategory(category === cat.value ? '' : cat.value)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: category === cat.value }}
               >
                 <Text
                   style={[
                     styles.chipText,
                     {
-                      color: category === cat ? colors.accent : colors.textMuted,
-                      fontWeight: category === cat ? '700' : '500',
+                      color: category === cat.value ? colors.accent : colors.textMuted,
+                      fontWeight: category === cat.value ? '700' : '500',
                     },
                   ]}
                 >
-                  {cat}
+                  {cat.label}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -148,10 +160,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   heading: {
-    fontSize: FONT_SIZES.title,
+    fontSize: 20,
     fontWeight: '700',
-    marginBottom: SPACING.md,
+    marginBottom: 5,
   },
+  description:{fontSize:13,lineHeight:19,marginBottom:SPACING.md},
   input: {
     fontSize: FONT_SIZES.body,
     padding: SPACING.md,

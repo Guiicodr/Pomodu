@@ -21,7 +21,7 @@ import { PomoduBrandLockup } from '@/components/brand/PomoduBrandLockup';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
-  const { colors, isDark } = useTheme();
+  const { colors, isDark, fontDisplay, fontBody } = useTheme();
   const { login, loginAsGuest, isLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -71,7 +71,7 @@ export default function LoginScreen() {
 
           <View style={styles.hero}>
             <Text style={[styles.eyebrow, { color: colors.accent }]}>FOCO COM INTENÇÃO</Text>
-            <Text style={[styles.title, { color: colors.text }]}>
+            <Text style={[styles.title, { color: colors.text, fontFamily: fontDisplay }]}>
               Menos distração.{'\n'}Mais <Text style={{ color: colors.accent }}>presença.</Text>
             </Text>
             <Text style={[styles.subtitle, { color: colors.textMuted }]}>
@@ -88,7 +88,7 @@ export default function LoginScreen() {
               },
             ]}
           >
-            <Text style={[styles.formTitle, { color: colors.text }]}>Boas-vindas de volta</Text>
+            <Text style={[styles.formTitle, { color: colors.text, fontFamily: fontDisplay }]}>Boas-vindas de volta</Text>
             <Text style={[styles.formSubtitle, { color: colors.textMuted }]}>
               Entre na sua conta para continuar.
             </Text>
@@ -104,7 +104,7 @@ export default function LoginScreen() {
                 >
                   <Mail size={18} color={colors.textMuted} />
                   <TextInput
-                    style={[styles.input, { color: colors.text }]}
+                    style={[styles.input, { color: colors.text, fontFamily: fontBody }]}
                     placeholder="voce@exemplo.com"
                     placeholderTextColor={colors.textMuted}
                     value={email}
@@ -130,7 +130,7 @@ export default function LoginScreen() {
                 >
                   <LockKeyhole size={18} color={colors.textMuted} />
                   <TextInput
-                    style={[styles.input, styles.passwordInput, { color: colors.text }]}
+                    style={[styles.input, styles.passwordInput, { color: colors.text, fontFamily: fontBody }]}
                     placeholder="Sua senha"
                     placeholderTextColor={colors.textMuted}
                     value={password}
@@ -162,6 +162,7 @@ export default function LoginScreen() {
                 onPress={() => router.push('/(auth)/forgot-password' as any)}
                 activeOpacity={0.7}
                 style={styles.forgotLink}
+                accessibilityRole="button"
               >
                 <Text style={[styles.forgotText, { color: colors.accent }]}>Esqueceu a senha?</Text>
               </TouchableOpacity>
@@ -193,7 +194,7 @@ export default function LoginScreen() {
                     <ActivityIndicator color={colors.onAccent} />
                   ) : (
                     <>
-                      <Text style={[styles.primaryButtonText, { color: colors.onAccent }]}>Entrar</Text>
+                      <Text style={[styles.primaryButtonText, { color: colors.onAccent, fontFamily: fontBody }]}>Entrar</Text>
                       <ArrowRight size={19} color={colors.onAccent} />
                     </>
                   )}

@@ -22,6 +22,9 @@ const STORAGE_KEY = '@pomodu/theme';
 interface ThemeContextValue {
   /** Cores do tema ativo */
   colors: ThemeColors;
+  /** Fontes carregadas pela raiz da aplicação */
+  fontDisplay: string;
+  fontBody: string;
   /** true se dark mode */
   isDark: boolean;
   /** Alterna entre light e dark */
@@ -32,6 +35,8 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue>({
   colors: lightTheme.colors,
+  fontDisplay: lightTheme.fontDisplay,
+  fontBody: lightTheme.fontBody,
   isDark: false,
   toggleTheme: () => {},
   setTheme: () => {},
@@ -70,8 +75,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     AsyncStorage.setItem(STORAGE_KEY, theme).catch(() => {});
   }, []);
 
+  const theme = isDark ? darkTheme : lightTheme;
   const value: ThemeContextValue = {
-    colors: isDark ? darkTheme.colors : lightTheme.colors,
+    colors: theme.colors,
+    fontDisplay: theme.fontDisplay,
+    fontBody: theme.fontBody,
     isDark,
     toggleTheme,
     setTheme,

@@ -13,13 +13,13 @@ import { LocationIcon } from '@/types';
 import { SPACING, FONT_SIZES, RADIUS } from '@/constants/theme';
 import { formatDuration } from '@/utils/format';
 
-const iconMap: Record<LocationIcon, React.ReactNode> = {
-  home: <House size={18} />,
-  briefcase: <Briefcase size={18} />,
-  coffee: <Coffee size={18} />,
-  university: <GraduationCap size={18} />,
-  gym: <Dumbbell size={18} />,
-  other: <MapPin size={18} />,
+const iconMap: Record<LocationIcon, React.ComponentType<{ size?: number; color?: string }>> = {
+  home: House,
+  briefcase: Briefcase,
+  coffee: Coffee,
+  university: GraduationCap,
+  gym: Dumbbell,
+  other: MapPin,
 };
 
 interface LocationRowProps {
@@ -33,12 +33,13 @@ interface LocationRowProps {
 export function LocationRow({ name, icon, sessions, focusedMs, rank }: LocationRowProps) {
   const { colors } = useTheme();
   const isBest = rank === 1;
+  const LocationGlyph = iconMap[icon] ?? MapPin;
 
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, { borderBottomColor: colors.border }]}>
       {/* Ícone */}
-      <View style={[styles.iconCircle, { backgroundColor: isBest ? colors.terracottaSoft : colors.tagBg }]}>
-        {iconMap[icon] ?? iconMap.other}
+      <View style={[styles.iconCircle, { backgroundColor: isBest ? colors.terracottaSoft : colors.accentSoft }]}>
+        <LocationGlyph size={18} color={colors.accent} />
       </View>
 
       {/* Info */}
@@ -52,7 +53,7 @@ export function LocationRow({ name, icon, sessions, focusedMs, rank }: LocationR
           )}
         </View>
         <Text style={[styles.meta, { color: colors.textMuted }]}>
-          {sessions} sessões · {formatDuration(focusedMs)}
+          {sessions} {sessions === 1 ? 'sessão' : 'sessões'} · {formatDuration(focusedMs)} de foco
         </Text>
       </View>
     </View>
@@ -65,8 +66,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.md,
     paddingVertical: SPACING.sm + 2,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.04)',
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   iconCircle: {
     width: 42,

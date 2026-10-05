@@ -33,7 +33,7 @@ export function StatCard({ icon, value, label, trend }: StatCardProps) {
       <View style={[styles.iconWrap, { backgroundColor: colors.accentSoft }]}>
         {icon}
       </View>
-      <Text style={[styles.value, { color: colors.text }]}>{value}</Text>
+      <Text style={[styles.value, { color: colors.text, fontFamily: 'Sora_600SemiBold' }]} numberOfLines={1} adjustsFontSizeToFit>{value}</Text>
       <Text style={[styles.label, { color: colors.textMuted }]}>{label}</Text>
       {trend != null && (
         <Text style={[styles.trend, { color: colors.sage }]}>{trend}</Text>
@@ -45,10 +45,10 @@ export function StatCard({ icon, value, label, trend }: StatCardProps) {
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    padding: SPACING.md,
-    borderRadius: 20,
+    padding: 15,
+    borderRadius: 19,
     borderWidth: 1,
-    gap: 4,
+    gap: 5,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 8,
@@ -62,15 +62,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   value: {
-    fontSize: FONT_SIZES.heading,
+    fontSize: 23,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
   label: {
-    fontSize: FONT_SIZES.caption,
+    fontSize: 11,
   },
   trend: {
-    fontSize: FONT_SIZES.caption,
+    fontSize: 10,
     fontWeight: '600',
   },
 });

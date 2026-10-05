@@ -10,7 +10,7 @@ import { SPACING, FONT_SIZES, RADIUS } from '@/constants/theme';
 
 interface Props { streakDays?: number; }
 
-export function FocusHeader({ streakDays = 12 }: Props) {
+export function FocusHeader({ streakDays = 0 }: Props) {
   const { colors, isDark, toggleTheme } = useTheme();
   return (
     <View style={styles.container}>
@@ -18,7 +18,7 @@ export function FocusHeader({ streakDays = 12 }: Props) {
       <View style={styles.rightRow}>
         <View style={[styles.streakBadge, { backgroundColor: colors.successBg }]}>
           <Leaf size={12} color={colors.successText} strokeWidth={2.5} />
-          <Text style={[styles.streakText, { color: colors.successText }]}>Day {streakDays}</Text>
+          <Text style={[styles.streakText, { color: colors.successText }]}>{streakDays} {streakDays === 1 ? 'dia' : 'dias'}</Text>
         </View>
         <TouchableOpacity style={[styles.themeButton, { backgroundColor: colors.tagBg }]} onPress={toggleTheme} activeOpacity={0.6} hitSlop={8}>
           {isDark ? <Sun size={16} color={colors.textMuted} /> : <Moon size={16} color={colors.textMuted} />}

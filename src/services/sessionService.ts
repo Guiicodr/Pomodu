@@ -48,6 +48,6 @@ export async function getFocusedMsByWeekday(): Promise<number[]> {
   const r = new Array(7).fill(0); for (const row of rows) r[row.weekday] = row.total; return r;
 }
 
-export async function getFocusedMsByLocation(): Promise<{ locationId: string; name: string; totalMs: number }[]> {
-  const db = getDatabase(); return await db.getAllAsync("SELECT fs.location_id AS locationId,wl.name,COALESCE(SUM(fs.actual_ms),0) AS totalMs FROM focus_sessions fs LEFT JOIN work_locations wl ON fs.location_id=wl.id WHERE fs.interrupted=0 AND fs.location_id IS NOT NULL GROUP BY fs.location_id ORDER BY totalMs DESC");
+export async function getFocusedMsByLocation(): Promise<{ locationId: string; name: string; totalMs: number; sessions: number }[]> {
+  const db = getDatabase(); return await db.getAllAsync("SELECT fs.location_id AS locationId,wl.name,COALESCE(SUM(fs.actual_ms),0) AS totalMs,COUNT(fs.id) AS sessions FROM focus_sessions fs LEFT JOIN work_locations wl ON fs.location_id=wl.id WHERE fs.interrupted=0 AND fs.location_id IS NOT NULL GROUP BY fs.location_id ORDER BY totalMs DESC");
 }
