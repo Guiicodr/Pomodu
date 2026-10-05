@@ -14,7 +14,7 @@ interface Props { remainingMs:number; totalMs:number; progress:number; phase:Pom
 const presets=[{label:'15m',value:15},{label:'25m',value:25},{label:'45m',value:45},{label:'Pausa',value:5}];
 
 export function CircularTimer({remainingMs,totalMs,progress,phase,isRunning,onPlayPause,onReset}:Props){
-  const{colors,isDark}=useTheme();const{width}=useWindowDimensions();const size=Math.min(SIZE,Math.max(220,width-72));const offset=CIRCUM*(1-Math.min(progress,1));
+  const{colors,isDark}=useTheme();const{width}=useWindowDimensions();const size=Math.min(SIZE,Math.max(220,width-72));const ringSize=size*(280/SIZE);const offset=CIRCUM*(1-Math.min(progress,1));
   const secs=Math.max(0,Math.ceil(remainingMs/1000));
   const display=`${String(Math.floor(secs/60)).padStart(2,'0')}:${String(secs%60).padStart(2,'0')}`;
   const stopped=phase==='idle';const isLight=!isDark;
@@ -28,8 +28,8 @@ export function CircularTimer({remainingMs,totalMs,progress,phase,isRunning,onPl
     <LinearGradient colors={[isLight?'rgba(33,131,58,0.08)':'rgba(73,209,107,0.09)','transparent']} style={[styles.glassCard,{borderColor:colors.border}]}>
       <View style={styles.wrapper}>
         <View style={[styles.container,{width:size,height:size}]}>
-          <Animated.View style={[styles.glowRing,{borderColor:colors.accent,opacity:glow}]}/>
-          <Svg width={SIZE} height={SIZE} viewBox="0 0 300 300">
+          <Animated.View style={[styles.glowRing,{width:ringSize,height:ringSize,borderRadius:ringSize/2,borderColor:colors.accent,opacity:glow}]}/>
+          <Svg width={size} height={size} viewBox="0 0 300 300">
             <Defs><SvgGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%"><Stop offset="0%" stopColor={colors.gradientPrimary[0]}/><Stop offset="100%" stopColor={colors.gradientPrimary[1]}/></SvgGradient><SvgGradient id="gw" x1="0%" y1="0%" x2="100%" y2="100%"><Stop offset="0%" stopColor={colors.gradientPrimary[0]} stopOpacity={0.12}/><Stop offset="100%" stopColor={colors.gradientPrimary[1]} stopOpacity={0.12}/></SvgGradient></Defs>
             <Circle cx={CX} cy={CY} r={R+16} stroke="url(#gw)" strokeWidth={20} fill="none"/>
             <Circle cx={CX} cy={CY} r={R} stroke={colors.track} strokeWidth={STROKE} fill="none"/>

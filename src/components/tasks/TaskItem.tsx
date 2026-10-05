@@ -18,9 +18,9 @@ export function TaskItem({ task, onToggle, onLongPress }: Props) {
       activeOpacity={0.75}
       onPress={onToggle}
       onLongPress={onLongPress}
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked: done }}
-      accessibilityLabel={`${task.title}, ${statusLabel}. Toque para atualizar.`}
+      accessibilityRole="button"
+      accessibilityLabel={`${task.title}, ${statusLabel}.`}
+      accessibilityHint="Toque para avançar para o próximo status."
       style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
     >
       <View style={[styles.bar, { backgroundColor: done ? colors.sage : task.status === 'in_progress' ? colors.priorityMedium : colors.accent }]} />
