@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Drawer } from 'expo-router/drawer';
 import { Stack, router } from 'expo-router';
@@ -19,6 +20,7 @@ import {
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { SettingsProvider } from '@/context/SettingsContext';
+import { TasksProvider } from '@/hooks/useTasks';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { AppDrawerContent } from '@/components/navigation/AppDrawerContent';
 import { initDatabase } from '@/services/database';
@@ -34,10 +36,43 @@ export default function RootLayout() {
     Sora_600SemiBold,
     Sora_700Bold,
   });
+  const [databaseState, setDatabaseState] = useState<'loading' | 'ready' | 'error'>('loading');
 
-  useEffect(() => { initDatabase().catch(console.error); }, []);
+  const initializeDatabase = useCallback(async () => {
+    setDatabaseState('loading');
+    try {
+      await initDatabase();
+      setDatabaseState('ready');
+    } catch (error) {
+      console.error('[RootLayout] database initialization failed', error);
+      setDatabaseState('error');
+    }
+  }, []);
 
-  if (!fontsLoaded) return null;
+  useEffect(() => { void initializeDatabase(); }, [initializeDatabase]);
+
+  if (!fontsLoaded || databaseState !== 'ready') {
+    return (
+      <SafeAreaProvider>
+        <View style={styles.startup}>
+          {databaseState === 'error' ? (
+            <>
+              <Text style={styles.startupTitle}>Não foi possível iniciar o Pomodu</Text>
+              <Text style={styles.startupMessage}>Seus dados locais não foram alterados. Tente novamente.</Text>
+              <TouchableOpacity style={styles.retryButton} onPress={() => void initializeDatabase()} accessibilityRole="button">
+                <Text style={styles.retryText}>Tentar novamente</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <ActivityIndicator color="#21833A" />
+              <Text style={styles.startupMessage}>Preparando seu espaço de foco…</Text>
+            </>
+          )}
+        </View>
+      </SafeAreaProvider>
+    );
+  }
 
   return (
     <SafeAreaProvider>
@@ -45,7 +80,9 @@ export default function RootLayout() {
         <AuthProvider>
           <SettingsProvider>
             <GestureHandlerRootView style={{ flex: 1 }}>
-              <MainNavigator />
+              <TasksProvider>
+                <MainNavigator />
+              </TasksProvider>
             </GestureHandlerRootView>
           </SettingsProvider>
         </AuthProvider>
@@ -53,6 +90,14 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  startup: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 28, gap: 12, backgroundColor: '#F4F7F2' },
+  startupTitle: { color: '#17231A', fontSize: 18, fontWeight: '700', textAlign: 'center' },
+  startupMessage: { color: '#667568', fontSize: 14, lineHeight: 20, textAlign: 'center' },
+  retryButton: { marginTop: 6, paddingHorizontal: 18, paddingVertical: 12, borderRadius: 12, backgroundColor: '#21833A' },
+  retryText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+});
 
 /** Auth gate: checks session, redirects to login if no user */
 function MainNavigator() {

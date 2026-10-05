@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, StatusBar, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { ActivityIndicator, View, Text, FlatList, StyleSheet, StatusBar, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Plus, Search } from 'lucide-react-native';
@@ -15,7 +15,7 @@ const FILTERS = [{ label: 'Todas', value: 'all' as const }, { label: 'A fazer', 
 export default function TasksScreen() {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
-  const { tasks, getTasksByStatus, createTask, updateTaskStatus, updateTask } = useTasks();
+  const { tasks, loading, error, refresh, getTasksByStatus, createTask, updateTaskStatus, updateTask } = useTasks();
   const [filter, setFilter] = useState<TaskStatus | 'all'>('all');
   const [search, setSearch] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
@@ -75,7 +75,25 @@ export default function TasksScreen() {
       <FlatList data={filtered} keyExtractor={t => t.id}
         renderItem={({ item }) => <TaskItem task={item} onToggle={() => handleToggle(item)} onLongPress={() => handleLongPress(item)} />}
         ListHeaderComponent={renderHeader}
-        ListEmptyComponent={<View style={styles.empty}><Text style={[styles.emptyTitle,{color:colors.text,fontFamily:'Sora_600SemiBold'}]}>{search?'Nenhuma tarefa encontrada':'Seu próximo foco começa aqui'}</Text><Text style={[styles.emptyHint,{color:colors.textMuted}]}>{search?'Experimente outro termo de busca.':'Crie uma tarefa e transforme intenção em progresso.'}</Text></View>}
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            {loading ? (
+              <ActivityIndicator color={colors.accent} />
+            ) : error ? (
+              <>
+                <Text style={[styles.emptyTitle,{color:colors.text,fontFamily:'Sora_600SemiBold'}]}>{error}</Text>
+                <TouchableOpacity onPress={refresh} accessibilityRole="button" style={styles.retry}>
+                  <Text style={[styles.retryText,{color:colors.accent}]}>Tentar novamente</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={[styles.emptyTitle,{color:colors.text,fontFamily:'Sora_600SemiBold'}]}>{search?'Nenhuma tarefa encontrada':'Seu próximo foco começa aqui'}</Text>
+                <Text style={[styles.emptyHint,{color:colors.textMuted}]}>{search?'Experimente outro termo de busca.':'Crie uma tarefa e transforme intenção em progresso.'}</Text>
+              </>
+            )}
+          </View>
+        }
         contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false} style={{ flex: 1 }} />
       <TaskFormModal visible={modalVisible} editingTask={editingTask} onSave={handleSave} onClose={() => { setModalVisible(false); setEditingTask(null); }} />
     </View>
@@ -94,4 +112,6 @@ const styles = StyleSheet.create({
   empty: { paddingVertical: 56, paddingHorizontal: 24, alignItems: 'center' },
   emptyTitle:{fontSize:17,fontWeight:'600',textAlign:'center'},
   emptyHint:{fontSize:13,lineHeight:20,textAlign:'center',marginTop:7},
+  retry:{paddingHorizontal:14,paddingVertical:9,marginTop:10},
+  retryText:{fontSize:13,fontWeight:'700'},
 });
